@@ -1,0 +1,467 @@
+---
+title: "Predicting Flight Delays and Understanding Contributing Factors"
+author: "Untitled"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+### Load Packages
+```{r}
+library(dplyr)#use for data manipulation
+library(car) # use for multicollinearity test (i.e. Variance Inflation Factor(VIF))
+library(ggplot2) # use for visualization
+library(gridExtra) # To plot multiple ggplot graphs in a grid
+library(olsrr) #for multicollinearityuse  test
+```
+
+#import dataset
+```{r}
+Delay_Flight <- read.csv("C:\\Users\\Elite\\Downloads\\archive (1)\\airline_delay.csv")
+
+```
+
+EXporatory data analysis
+## check make up of data
+
+```{r}
+# Look at the first and last few rows to ensure that the data is read in properly and check for consistency
+
+head(Delay_Flight)
+tail(Delay_Flight)
+
+
+```
+
+```{r}
+dim(Delay_Flight)
+# There are 3351 observations and 21 variables
+```
+```{r}
+colnames(Delay_Flight)
+```
+
+
+get info about the dataset
+
+```{r}
+summary(Delay_Flight)
+```
+Observations:
+- For the variables where the Mean and median  values is very different suggests a skewed distribution and presence of outliers.
+
+```{r}
+unique(Delay_Flight)
+```
+
+```{r}
+unique(Delay_Flight$year)
+unique(Delay_Flight$month)
+unique(Delay_Flight$carrier)
+unique(Delay_Flight$carrier_name)
+unique(Delay_Flight$arr_del15)
+unique(Delay_Flight$carrier_delay)
+unique(Delay_Flight$weather_delay)
+unique(Delay_Flight$arr_diverted)
+unique(Delay_Flight$arr_cancelled)
+unique(Delay_Flight$carrier_delay)
+
+
+```
+
+```{r}
+View(Delay_Flight)
+
+```
+
+```{r}
+str(Delay_Flight)
+#it can be seen that there would be a need to changed data types for some variables 
+
+```
+Descriptive Statistics - the arr_del15  variable is our dependent/target/response variable.
+
+Data Cleaning :
+
+1. Variable conversion : arr_del15 -  * It has a interger type, but character value doesn't mean anything. It's better to change it into a numeric type. 
+
+```{r}
+# Convert Interger to numeric
+Delay_Flight$arr_del15 <- as.numeric(Delay_Flight$arr_del15)
+summary(Delay_Flight$arr_del15)
+```
+Observations:
+- It can be seen now that there appear to be an obvious difference between the median and mean indicating a skewed distribution and possible presence of outliers.
+- Also there are missing values which didn't show because it was recorded as interger.
+These will be investigated during the visualizations.
+
+
+2. Coverting data type: arr_flights,arr_cancelled,arr_diverted,arr_delay,carrier_delay,nas_delay,weather_delay,security_delay,late_aircraft_delay
+They are Interger variable, but should be numeric type.
+
+```{r}
+Delay_Flight$arr_flights <- as.numeric(Delay_Flight$arr_flights)
+Delay_Flight$arr_cancelled <- as.numeric(Delay_Flight$arr_cancelled)
+Delay_Flight$arr_diverted <- as.numeric(Delay_Flight$arr_diverted)
+Delay_Flight$arr_delay <- as.numeric(Delay_Flight$arr_delay)
+Delay_Flight$carrier_delay <- as.numeric(Delay_Flight$carrier_delay)
+Delay_Flight$weather_delay <- as.numeric(Delay_Flight$weather_delay)
+Delay_Flight$nas_delay <- as.numeric(Delay_Flight$nas_delay)
+Delay_Flight$security_delay <- as.numeric(Delay_Flight$security_delay)
+Delay_Flight$late_aircraft_delay <- as.numeric(Delay_Flight$late_aircraft_delay)
+Delay_Flight$year <- as.factor(Delay_Flight$year)
+
+
+```
+
+Now check structure after converting datatypes
+
+```{r}
+str(Delay_Flight)
+
+```
+
+Missing Value Treatment 
+```{r}
+# Check the missing values in the dataset
+sum(is.na(Delay_Flight))
+
+# Check which column has missing values
+colSums(is.na(Delay_Flight))
+```
+As can be seen there are 8 mising values in the arr_flights ,arr_del15,carrier_ct,weather_ct,nas_ct,security_ct,ate_aircraft_ct,arr_cancelled        arr_diverted,arr_delay,carrier_delay, weather_delay,nas_delay,late_aircraft_delay  security_delay variable. We would treat this by replacing all missing values with the median.
+
+```{r}
+# missing value imputation
+Delay_Flight$arr_flights[which(is.na(Delay_Flight$arr_flights))]<- median(Delay_Flight$arr_flights,na.rm = T)
+
+# check the missing value again. 
+sum(is.na(Delay_Flight))
+```
+
+```{r}
+Delay_Flight$arr_del15[which(is.na(Delay_Flight$arr_del15))]<- median(Delay_Flight$arr_del15,na.rm = T)
+sum(is.na(Delay_Flight))
+
+
+
+
+
+
+
+```
+
+```{r}
+Delay_Flight$carrier_ct[which(is.na(Delay_Flight$carrier_ct))]<- median(Delay_Flight$carrier_ct,na.rm = T)
+sum(is.na(Delay_Flight))
+
+
+```
+```{r}
+Delay_Flight$weather_delay[which(is.na(Delay_Flight$weather_delay))]<- median(Delay_Flight$weather_delay,na.rm = T)
+sum(is.na(Delay_Flight))
+
+
+
+
+
+
+```
+
+```{r}
+Delay_Flight$nas_ct[which(is.na(Delay_Flight$nas_ct))]<- 
+median(Delay_Flight$nas_ct,na.rm = T)
+sum(is.na(Delay_Flight))
+
+
+
+```
+```{r}
+Delay_Flight$security_ct[which(is.na(Delay_Flight$security_ct))]<- 
+median(Delay_Flight$security_ct,na.rm = T)
+sum(is.na(Delay_Flight))
+```
+
+```{r}
+Delay_Flight$late_aircraft_ct[which(is.na(Delay_Flight$late_aircraft_ct))]<- 
+median(Delay_Flight$late_aircraft_ct,na.rm = T)
+sum(is.na(Delay_Flight))
+```
+
+
+```{r}
+Delay_Flight$arr_cancelled[which(is.na(Delay_Flight$arr_cancelled))]<- 
+median(Delay_Flight$arr_cancelled,na.rm = T)
+sum(is.na(Delay_Flight))
+```
+```{r}
+Delay_Flight$nas_delay[which(is.na(Delay_Flight$nas_delay))]<- 
+median(Delay_Flight$nas_delay,na.rm = T)
+sum(is.na(Delay_Flight))
+```
+
+```{r}
+Delay_Flight$nas_ct[which(is.na(Delay_Flight$nas_ct))]<- 
+median(Delay_Flight$nas_ct,na.rm = T)
+sum(is.na(Delay_Flight))
+```
+
+
+VISUALIZATION 
+
+Univariate and Bivariate analysis
+```{r}
+#Function to plot histogram and boxplot simultaneously
+plot_histogram_n_boxplot = function(variable, variableNameString, binw){
+  h = ggplot(data = Delay_Flight, aes(x= variable))+
+    labs(x = variableNameString,y ='count')+
+    geom_histogram(fill = 'green',col = 'white',binwidth = binw)+
+    geom_vline(aes(xintercept=mean(variable)),
+               color="black", linetype="dashed", size=0.5)
+  b = ggplot(data = Delay_Flight, aes('',variable))+ 
+    geom_boxplot(outlier.colour = 'red',col = 'red',outlier.shape = 19)+
+    labs(x = '',y = variableNameString)+ coord_flip()
+  grid.arrange(h,b,ncol = 2)
+}
+
+
+```
+
+```{r echo=FALSE}
+# Dependent variable mpg
+
+plot_histogram_n_boxplot(Delay_Flight$arr_del15,"arr_del15",2)
+
+#The distributions of Arr_del15 is left skewed.
+```
+
+
+
+```{r echo=FALSE}
+plot_histogram_n_boxplot(Delay_Flight$nas_ct,"Delay flight",300)
+```
+
+
+
+```{r echo=FALSE}
+plot_histogram_n_boxplot(Delay_Flight$carrier_ct,"Carrier category",10)
+```
+- The distributions of carrier category is left skewed. And has outliers which can affect our linear model s we have to handle these outliers.
+
+```{r echo=FALSE}
+plot_histogram_n_boxplot(Delay_Flight$weather_delay,"Weather delay",20)
+```
+- The distributions for displacement is left skewed/tailed.
+
+
+```{r echo=FALSE}
+plot_histogram_n_boxplot(Delay_Flight$arr_cancelled,"arline cancelled",1)
+
+```
+- The distributions for arline cancelled looks left skewed distributed
+
+```{r}
+unique(Delay_Flight$year)
+```
+
+
+```{r}
+ggplot(Delay_Flight, aes(x=carrier)) + labs(x = "Airline ",y ='Distribution') + geom_bar( fill = 'green', color ="orange") + theme_classic()
+ggplot(Delay_Flight, aes(x=year)) + labs(x = "Trends of years ",y ='Distribtion') + geom_bar( fill = 'green', color ="orange") + theme_classic()
+
+
+```
+
+
+
+
+
+Multivariate Correlation plot between the numerical variables
+```{r}
+library(GGally)
+```
+```{r}
+num_vars = sapply(Delay_Flight[,c(-7,-10)], is.numeric)
+
+DataExplorer::plot_correlation(Delay_Flight[,num_vars])
+```
+
+
+Correlation between dependent variable and independent variable is to be considered when modelling a prediction in a dataset, but if there is high correlation amongst independent variables themselves, that causes problem in interpreting statistical models and therefore will treat them later.
+
+Carrier_cat,weather_delay,nas_cat,security_cat has a positive correlation with the arr_del15 implying as all varable of a delay_flight increases the arr_del15  increases.
+
+- We can see that our independent variables show a high correlation with each other contributing to multicollinearity that needs to be taken care of much later.
+`
+
+Outlier treatment
+
+As observed earlier carrier_ct,weather_delay,nas_cat,security_cat has outlier and we need to treat them as linear models are sensitive to the effects of outliers. We will create a function to cap the outliers
+
+```{r}
+cap_outliers <- function(x, lower_cap = NULL, upper_cap = NULL) {
+  # Calculate the quartiles
+  q1 <- quantile(x, 0.25)
+  q3 <- quantile(x, 0.75)
+  
+  # Calculate the interquartile range (IQR)
+  iqr <- q3 - q1
+  
+  # Calculate the lower and upper fences
+  lower_fence <- q1 - 1.5 * iqr
+  upper_fence <- q3 + 1.5 * iqr
+  
+  # Cap outliers
+  if (!is.null(lower_cap)) {
+    x[x < lower_fence] <- lower_cap
+  }
+  
+  if (!is.null(upper_cap)) {
+    x[x > upper_fence] <- upper_cap
+  }
+  
+  return(x)
+}
+
+```
+Now will can apply the outlier capping function to the variable we want
+
+
+
+
+```{r}
+Delay_Flight$carrier_ct <- cap_outliers(Delay_Flight$carrier_ct)
+Delay_Flight$weather_delay <- cap_outliers(Delay_Flight$weather_delay)
+Delay_Flight$nas_ct <- cap_outliers(Delay_Flight$nas_ct)
+Delay_Flight$security_delay <- cap_outliers(Delay_Flight$security_ct)
+Delay_Flight$arr_flights <- cap_outliers(Delay_Flight$arr_flights)
+Delay_Flight$arr_cancelled <- cap_outliers(Delay_Flight$arr_cancelled)
+Delay_Flight$late_aircraft_ct <- cap_outliers(Delay_Flight$late_aircraft_ct)
+```
+
+
+
+
+MODEL BUILDING
+
+# Model Building Approach :
+
+1. Partition the data into train and test set.
+2. Build a Linear Regression model on the train data.
+3. Test the data on test set.
+
+
+```{r}
+library(caTools) # for split
+
+# Set seed to ensure reproducibility
+
+set.seed(12)
+# use the function sample() to randomly sample 70% rows into train data and 30% to test data
+sample = sample.split(Delay_Flight$arr_del15, SplitRatio = 0.7)
+traindata = subset(Delay_Flight, sample == TRUE)
+testdata = subset (Delay_Flight, sample == FALSE)
+
+## View to see the distribution of the dependent variable accross the split in comparison to total distribution
+
+```
+
+```{r}
+head(traindata)
+
+nrow(traindata)
+nrow(testdata)
+
+```
+# Creating a baseline model :
+* A baseline model in Linear Regression is the average of the dependent variable as the prediction. As maybe a guide for comaprison later
+
+
+Build a Linear Regression model on the train dataset
+
+* lm is used to fit a linear model and perform regression
+* formula is a symbolic description of the model to be fitted like dependent_variable~Independent_variables
+
+```{r}
+model_1 <-lm(formula =  arr_del15~. ,data=traindata)
+summary(model_1)
+
+```
+-- Understanding the output of Linear Regression model 
+
+Model performance :
+
+- Multiple R-squared and Adjusted R-squared : It is always between 0 to 1, high value signifies better percentage of variation in the dependent variable.
+When we increase number of variables the Multiple R-squared value may increase but Adj R-squared only increases when the added column is significant for explaining the variation in the dependent variable.
+In our model we have got a multiple R-squared of 1 and an adjusted R-squared of 1 which looks good
+
+
+-- Multi-collinearity and VIF :
+
+- Multicollinearity occurs when predictor variables in a regression model are correlated. This correlation is a problem because predictor variables should be independent. 
+If the correlation between variables is high, it can cause problems when we fit the model and interpret the results.
+When we have multicollinearity the linear model, The coefficients that the model suggests are unreliable.
+
+- To get rid of with multicollinearity we use Variance Inflation Factor (VIF)
+
+- In order to check Multicolliniearity, we use Variance Inflation Factor(VIF) among the predictors.A value greater than 10 signifies high multicolliniearity and hence it is advisable to drop such features.
+
+
+-- Checking multicollinearity in data 
+```{r}
+
+olsrr::ols_vif_tol(model_1)
+
+```
+
+```{r}
+model_2<-lm(formula = arr_del15~ carrier_ct + weather_delay + nas_ct + security_ct    ,data=traindata)
+
+summary(model_2)
+```
+
+```{r}
+model_3<-lm(formula = arr_del15~ carrier_ct + weather_delay + nas_ct + security_ct +   +arr_cancelled+late_aircraft_ct+arr_flights,data=traindata)
+summary(model_3)
+```
+
+```{r}
+## create our testing input, which is the test data minus the target variable arr-del15
+xtest <- testdata[,-c(1)]
+```
+
+```{r}
+## create the test output, which is just the target variable from the test set
+ytest <- testdata$arr_del15
+```
+
+```{r}
+## Get our models prediction by using our model to predict the test inputs "xtest"
+pred <- predict(model_2,xtest)
+```
+
+```{r}
+## comparring the correllation between our predicted value and the actual value
+## This gives us the performance of our model
+cor(pred,ytest)
+```
+
+```{r}
+#visualizing our model prediction alongside the actual test values
+result = data.frame(pred,ytest)
+cbind(pred,ytest)
+```
+
+
+
+
+
+```{r}
+#Plotting the prediction against the actual test values to visualize the model performance
+ggplot(result, aes(x = ytest, y = pred)) + 
+  geom_point()+geom_smooth()
+```
+Accuracy
+
+```{r}
+RMSE <- sqrt(mean(pred-Delay_Flight$arr_del15)^2)
+
+
