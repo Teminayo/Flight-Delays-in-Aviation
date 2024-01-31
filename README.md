@@ -9,25 +9,25 @@ Flight Delay Prediction and Contributing Factors Analysis for Regional Flight Co
 
 # Skills/Concept Demonstrated
 The following concepts were used in this project;
-•	Data Manipulation with dplyr
-•	Test of Multicollinearity with Car
-•	Data visualization with ggplot2
-•	Baseline model using linear regression
+1. Data Manipulation with dplyr
+2. Test of Multicollinearity with Car
+3. Data visualization with ggplot2
+4. Baseline model using linear regression
         
          
 # Data Sourcing
 The dataset was obtained from Kaggle
 
 # Methodology
-•	Industry Problem Understanding
-•	Problem statement generation
-•	Domain Knowledge acquisition
-•	Data preprocessing and cleaning
-•	Exploratory data analysis
-o	Univariate analysis
-o	Bivariate analysis
-o	Multivariate analysis
-•	Linear regression model using Arline flight late by 15min as dependent variable.
+1. Industry Problem Understanding
+2. Problem statement generation
+3. Domain Knowledge acquisition
+4. Data preprocessing and cleaning
+5. Exploratory data analysis;
+   Univariate analysis,
+   Bivariate analysis,
+   Multivariate analysis
+6.	Linear regression model using Arline flight late by 15min as dependent variable.
 
 # Insight to find
 1.	Discover patterns in flight delays over different months or seasons. Are there specific times of the year when delays are more common? 
