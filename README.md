@@ -1,5 +1,5 @@
 # Flight-Delays-in-Aviation
-
+This project showcases my skills in building ML models using R.
 # Introduction
 
 As a member of the aviation data science team, you have been approached by David, the manager of flight control, to provide insights into flight delays within the region. The goal is to better understand the contributing factors and predict the likelihood of flight delays. This analysis will contribute to the development of a model that specifically identifies factors such as carrier delay, weather delay, NAS delay, security delay, and late aircraft delay.
